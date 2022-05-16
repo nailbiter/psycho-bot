@@ -46,7 +46,7 @@ def parse_time(time, now=None):
     return dt
 
 
-def get_current_offset():
+def _get_current_offset():
     # code below is adapted from https://stackoverflow.com/a/10854983
     offset = time.timezone if (
         time.localtime().tm_isdst == 0) else time.altzone
@@ -102,11 +102,12 @@ def send_message(chat_id, text, telegram_token=None, enclose_in_triple_ticks=Fal
     for text_ in _split_long_text(text, _TELEGRAM_MESSAGE_LEN_LIM):
         if enclose_in_triple_ticks:
             text_ = f"```{text_}```"
-        mess = bot.sendMessage(
-            chat_id=chat_id,
-            text=text_,
-            **kwargs
-        )
+    mess = bot.sendMessage(
+        chat_id=chat_id,
+        text=text_,
+        **kwargs
+    )
+    return mess.message_id
 
 
 # https://dev-qa.com/320717/sending-large-messages-telegram-bot
@@ -128,3 +129,10 @@ def _split_long_text(text, max_len, line_sep="\n"):
     if len(buf) > 0:
         res.append(line_sep.join(buf))
     return res
+
+
+def to_utc_datetime(date=None, inverse=False):
+    if date is None:
+        date = datetime.now()
+    td = timedelta(hours=_get_current_offset())
+    return date-td if not inverse else date+td

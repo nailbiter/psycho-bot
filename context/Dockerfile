@@ -15,5 +15,6 @@ RUN mkdir _common
 COPY _common/__init__.py _common
 
 RUN mkdir data
+COPY data/psycho.json data
 
-CMD ["false"]
+CMD ["flask","run","--host=0.0.0.0"]
