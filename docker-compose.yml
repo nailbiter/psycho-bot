@@ -1,28 +1,18 @@
 version: '3.3'
 
 services:
-    heartbeat:
-        build:
-            context: heartbeat_system
-            # command: python3 heartbeat.py -b 0.05
-        command: python3 heartbeat.py
-    scheduler:
-        build:
-            context: heartbeat_system
-        command: flask run --host=0.0.0.0
-        environment:
-            - FLASK_ENV=development
-            - FLASK_APP=scheduler.py
-            - MONGO_URL=${MONGO_URL}
     telegram_client:
         image: nailbiter/universal-telegram-client
         environment:
             - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
             - SCHEDULER=telegram_server:5000
             - CHAT_ID=${CHAT_ID}
+            - COMMANDS=psycho
+            - MESSAGE_CB=message
+            - TELEGRAM_COMMANDS=psycho
     telegram_server:
         build:
-            context: telegram_system
+            context: .
         command: flask run --host=0.0.0.0
         environment:
             - SCHEDULER=scheduler:5000
