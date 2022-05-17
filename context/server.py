@@ -17,7 +17,7 @@ ORGANIZATION:
     REVISION: ---
 
 ==============================================================================="""
-from flask import Flask, request
+from flask import Flask, request, render_template
 import logging
 import os
 import requests
@@ -29,6 +29,7 @@ import pandas as pd
 import io
 import uuid
 import pymongo
+from jinja2 import Template
 
 app = Flask(__name__)
 
@@ -54,15 +55,19 @@ def ls():
         {
             "uuid": uuid_,
             "cnt": len(slice_),
-            "message_id": slice_.message_id.iloc[slice_.datetime.argmax()],
-            "text":message["text"],
+            #            "message_id": slice_.message_id.iloc[slice_.datetime.argmax()],
+            #            "text":message["text"],
         }
         for uuid_, slice_
         in coll_df.groupby("uuid")
     ])
     coll_df = coll_df[coll_df.cnt < (len(df)+1)]
-    text = f"""have {len(coll_df)} incomplete"""
-    _common.send_message(message["chat"]["id"], text)
+    coll_df = coll_df.set_index("uuid").sort_values(by="cnt", ascending=False)
+    coll_df.cnt = coll_df.cnt.apply(lambda cnt: f"{cnt}/{len(df)+1}")
+    text = f"""have {len(coll_df)} incomplete: ```
+    {coll_df.to_string()}
+    ```"""
+    _common.send_message(message["chat"]["id"], text, parse_mode="Markdown")
 
     return "Hello, World"
 
@@ -81,14 +86,24 @@ def psycho():
         _, dt = re.split(r"\s+", text, maxsplit=1)
         dt = datetime.strptime(dt, "%Y-%m-%d %H:%M")
 
+    _uuid = str(uuid.uuid4())
+    chat_id = message["chat"]["id"]
     message_id = _common.send_message(
-        message["chat"]["id"], f"1/{len(df)}: {df.text.iloc[0]}")
+        chat_id,
+        render_template(
+            "psycho.jinja.md",
+            uuid=_uuid,
+            df=df,
+            text=df.text.iloc[0],
+        )
+    )
 
     coll.insert_one({
         "datetime": _common.to_utc_datetime(dt),
-        "uuid": str(uuid.uuid4()),
+        "uuid": _uuid,
         "message_id": message_id,
         "_real_datetime": _common.to_utc_datetime(now),
+        "chat_id": chat_id,
     })
     return 'Hello, World!'
 
@@ -127,7 +142,15 @@ def message():
         if cnt < len(df):
             text = df.text.iloc[cnt]
             message_id = _common.send_message(
-                message["chat"]["id"], f"""{cnt}/{len(df)}: {text}""")
+                message["chat"]["id"],
+                render_template(
+                    "psycho.jinja.md",
+                    cnt=cnt,
+                    uuid=coll_df.uuid.iloc[0],
+                    df=df,
+                    text=text,
+                ),
+            )
         else:
             _common.send_message(message["chat"]["id"], "finish")
 

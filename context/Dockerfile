@@ -17,4 +17,7 @@ COPY _common/__init__.py _common
 RUN mkdir data
 COPY data/psycho.json data
 
+RUN mkdir templates
+COPY templates/psycho.jinja.md templates
+
 CMD ["flask","run","--host=0.0.0.0"]
