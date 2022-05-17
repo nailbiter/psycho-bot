@@ -1,10 +1,8 @@
 [
   {
-    "cronline": "* * * * *",
+    "cronline": "0 * * * *",
     "method": "POST",
-    "payload": {
-      "text": ""
-    },
+    "payload": {},
     "url": "http://telegram_server:5000/activity_reminder",
     "uuid": "65b23f8a-c349-44b6-ab83-a3d4a2c21187"
   }
