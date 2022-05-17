@@ -9,7 +9,7 @@ services:
         environment:
             - FLASK_ENV=development
             - MONGO_URL=${MONGO_URL}
-            - TIMERS_COLL=pyscho_timers
+            - TIMERS_COLL=psycho_timers
     telegram_client:
         image: nailbiter/universal-telegram-client
         environment:

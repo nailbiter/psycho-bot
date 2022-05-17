@@ -45,6 +45,13 @@ def _get_mongo_client(collname):
     return client, coll
 
 
+@app.route('/activity_reminder', methods=["POST"])
+def activity_reminder():
+    message = (request.form)
+    logging.warning(f"activity_reminder: {message}")
+    return "Hello, World!"
+
+
 @app.route('/ls', methods=["POST"])
 def ls():
     message = json.loads(request.form["message"])

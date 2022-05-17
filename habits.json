@@ -1,44 +1,11 @@
 [
   {
-    "cronline": "45 23 * * *",
+    "cronline": "* * * * *",
     "method": "POST",
     "payload": {
-      "text": "chelust insert"
+      "text": ""
     },
-    "start_date": {
-      "$date": {
-        "$numberLong": "1649065683707"
-      }
-    },
-    "url": "http://telegram_server:5000/send_message",
+    "url": "http://telegram_server:5000/activity_reminder",
     "uuid": "65b23f8a-c349-44b6-ab83-a3d4a2c21187"
-  },
-  {
-    "cronline": "0 10-17 * * 1-5",
-    "method": "POST",
-    "payload": {
-      "text": "sit"
-    },
-    "start_date": {
-      "$date": {
-        "$numberLong": "1649065683707"
-      }
-    },
-    "url": "http://telegram_server:5000/send_message",
-    "uuid": "1C955DE4-2C85-4F98-8B41-5B10F6C316F0"
-  },
-  {
-    "cronline": "20 10-16 * * 1-5",
-    "method": "POST",
-    "payload": {
-      "text": "stand"
-    },
-    "start_date": {
-      "$date": {
-        "$numberLong": "1649065683707"
-      }
-    },
-    "url": "http://telegram_server:5000/send_message",
-    "uuid": "1C22CC9D-765F-43A6-AB52-094871AE110E"
   }
 ]
