@@ -7,7 +7,6 @@ services:
     scheduler:
         image: nailbiter/heartbeat_system
         environment:
-            - FLASK_ENV=development
             - MONGO_URL=${MONGO_URL}
             - TIMERS_COLL=psycho_timers
     telegram_client:
@@ -27,5 +26,4 @@ services:
             - SELF_URL=telegram_server:5000
             - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
             - MONGO_URL=${MONGO_URL}
-            - FLASK_ENV=development
             - FLASK_APP=server.py
