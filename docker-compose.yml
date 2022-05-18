@@ -17,12 +17,13 @@ services:
             - SCHEDULER=telegram_server:5000
             - CHAT_ID=${CHAT_ID}
             - MESSAGE_CB=message
-            - TELEGRAM_COMMANDS=psycho,ls
+            - TELEGRAM_COMMANDS=psycho,ls,activity_sleep
     telegram_server:
         build:
             context: context
         environment:
             - SCHEDULER=scheduler:5000
+            - CHAT_ID=${CHAT_ID}
             - SELF_URL=telegram_server:5000
             - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
             - MONGO_URL=${MONGO_URL}

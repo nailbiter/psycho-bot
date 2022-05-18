@@ -1,0 +1,32 @@
+[
+  {
+    "text": "Запланована активність"
+  },
+  {
+    "text": "Активність, яка реально мала місце"
+  },
+  {
+    "condition": {
+      "lower_bound": 0,
+      "type": "int",
+      "upper_bound": 10
+    },
+    "text": "Вираженість депресивного настрою (0-10))"
+  },
+  {
+    "condition": {
+      "lower_bound": 0,
+      "type": "int",
+      "upper_bound": 10
+    },
+    "text": "Відчуття досягнення (0-10))"
+  },
+  {
+    "condition": {
+      "lower_bound": 0,
+      "type": "int",
+      "upper_bound": 10
+    },
+    "text": "Відчуття приємності (0-10))"
+  }
+]
