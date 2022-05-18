@@ -47,6 +47,14 @@ def get_random_uuid():
     return randomname.generate().replace("-", "_")
 
 
+class _RegexCondition():
+    def __init__(self, regex):
+        self._regex = re.compile(regex)
+
+    def __call__(self, text):
+        return self._regex.match(text) is not None
+
+
 class _IntCondition():
     def __init__(self, lower_bound=None, upper_bound=None):
         self._lower_bound = lower_bound
@@ -54,8 +62,6 @@ class _IntCondition():
 
     def __call__(self, text):
         i = int(text)
-#        logging.error(
-#            f"test {i} with {(self._lower_bound, self._upper_bound)}")
         if self._lower_bound is not None:
             if i < self._lower_bound:
                 return False
@@ -67,6 +73,7 @@ class _IntCondition():
 
 _CONDITIONS = {
     "int": _IntCondition,
+    "regex": _RegexCondition,
 }
 
 

@@ -21,14 +21,13 @@ ORGANIZATION:
 
 import click
 from dotenv import load_dotenv
-import os
-from os import path
 import logging
 import pandas as pd
 import pymongo
 from datetime import datetime, timedelta
 import _common
 import numpy as np
+from os import path
 
 
 @click.group()
@@ -36,15 +35,23 @@ def script_deck():
     pass
 
 
+_D = {
+    "psycho": ["psycho", "psycho1"],
+    "activities": ["activities", "activities"],
+}
+
+
 @script_deck.command()
-@click.option("--mark-printed/--no-mark-printed", default=True)
-def print_psycho(mark_printed):
-    _, coll = _common.get_mongo_client("psycho1")
+@click.option("--mark-printed/--no-mark-printed", " /-n", default=True)
+@click.option("-k", "--key", type=click.Choice(list(_D)))
+def print_psycho(mark_printed, key):
+    file_name, coll_name = _D[key]
+    _, coll = _common.get_mongo_client(coll_name)
     coll_df = pd.DataFrame(coll.find())
     _, coll_print_marks = _common.get_mongo_client("psycho1_print_marks")
-    states_df = pd.read_json("context/src/data/psycho.json")
-#    click.echo(len(states_df))
+    states_df = pd.read_json(f"context/src/data/{file_name}.json")
     print_marks_df = pd.DataFrame(coll_print_marks.find())
+    print_marks_df = print_marks_df[["uuid"]]
     print_marks_df["is_printed"] = True
     coll_df = pd.concat([
         pd.DataFrame({
@@ -60,14 +67,30 @@ def print_psycho(mark_printed):
         print_marks_df.set_index("uuid")).reset_index()
     coll_df.is_printed = coll_df.is_printed.fillna(False)
     coll_df = coll_df[~coll_df.is_printed]
+    assert len(coll_df) > 0
     uuids = coll_df.pop("uuid").unique()
     coll_df = coll_df.set_index(["datetime", "i"]).unstack().text
     coll_df = coll_df.reset_index()
     logging.warning((list(coll_df), len(coll_df)))
     coll_df = coll_df.sort_values(by="datetime")
+
+    # postproc
+    if key == "activities":
+        dt = coll_df.pop("datetime")
+        coll_df.insert(loc=0, column="day", value=dt.apply(
+            lambda dt: dt.strftime("%Y-%m-%d")))
+        coll_df.insert(loc=1, column="h1", value=dt.apply(
+            lambda dt: dt.strftime("%H:00")))
+        coll_df.insert(loc=2, column="h2", value=(
+            dt+timedelta(hours=1)).apply(lambda dt: dt.strftime("%H:00")))
+    else:
+        pass
+
     click.echo(coll_df.to_csv(header=None, index=None, sep="\t"))
     if mark_printed:
-        coll_print_marks.insert_many([{"uuid": u}for u in uuids])
+        dt = datetime.now()
+        coll_print_marks.insert_many([{"uuid": u, "dt": dt} for u in uuids])
+        logging.warning(f"{len(coll_df)} marks done")
 
 
 @script_deck.command()
