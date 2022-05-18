@@ -13,11 +13,12 @@ COPY src/server.py .
 
 RUN mkdir _common
 COPY src/_common/__init__.py _common
+COPY src/_common/base.py _common
 
 RUN mkdir data
-COPY data/psycho.json data
+COPY src/data/psycho.json data
 
 RUN mkdir templates
-COPY templates/psycho.jinja.md templates
+COPY src/templates/psycho.jinja.md templates
 
 CMD ["flask","run","--host=0.0.0.0"]

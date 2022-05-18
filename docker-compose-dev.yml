@@ -21,6 +21,7 @@ services:
     telegram_server:
         build:
             context: context
+            dockerfile: Dockerfile.dev
         environment:
             - SCHEDULER=scheduler:5000
             - SELF_URL=telegram_server:5000
@@ -29,4 +30,4 @@ services:
             - FLASK_ENV=development
             - FLASK_APP=server.py
         volumes:
-          - ./context/src 
+          - ./context/src:/src:r
