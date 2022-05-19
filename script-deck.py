@@ -83,6 +83,11 @@ def print_psycho(mark_printed, key):
             lambda dt: dt.strftime("%H:00")))
         coll_df.insert(loc=2, column="h2", value=(
             dt+timedelta(hours=1)).apply(lambda dt: dt.strftime("%H:00")))
+
+        trip = coll_df.pop(2).str.split(
+            "/").apply(lambda l: map(int, l)).apply(list)
+#        click.echo(pd.DataFrame(list(trip)))
+        coll_df[[f"s{i}"for i in range(3)]] = pd.DataFrame(list(trip))
     else:
         pass
 
