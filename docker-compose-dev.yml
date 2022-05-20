@@ -30,4 +30,4 @@ services:
             - FLASK_ENV=development
             - FLASK_APP=server.py
         volumes:
-          - ./context/src:/src:r
+            - ./context/src:/src:ro

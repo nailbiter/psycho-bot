@@ -94,21 +94,31 @@ def activity_reminder():
 @app.route('/ls', methods=["POST"])
 def ls():
     message = json.loads(request.form["message"])
-    df = get_psycho_transitions("./data/psycho.json")
-    _, coll = get_mongo_client("psycho1")
-    coll_df = pd.DataFrame(coll.find())
-    coll_df = pd.DataFrame([
-        {
-            "uuid": uuid_,
-            "cnt": len(slice_),
-        }
-        for uuid_, slice_
-        in coll_df.groupby("uuid")
-    ])
-    coll_df = coll_df[coll_df.cnt < (len(df)+1)]
-    coll_df.uuid = "#"+coll_df.uuid
-    coll_df = coll_df.set_index("uuid").sort_values(by="cnt", ascending=False)
-    coll_df.cnt = coll_df.cnt.apply(lambda cnt: f"{cnt}/{len(df)+1}")
+
+    colls = []
+    with open("data/collections.json") as f:
+        cls = json.load(f)
+    for coll_key, (file_name, coll_name) in cls.items():
+        df = get_psycho_transitions(f"./data/{file_name}.json")
+        _, coll = get_mongo_client(coll_name)
+        coll_df = pd.DataFrame(coll.find())
+        coll_df = pd.DataFrame([
+            {
+                "uuid": uuid_,
+                "cnt": len(slice_),
+            }
+            for uuid_, slice_
+            in coll_df.groupby("uuid")
+        ])
+        coll_df = coll_df[coll_df.cnt < (len(df)+1)]
+        coll_df.uuid = "#"+coll_df.uuid
+        coll_df = coll_df.set_index("uuid").sort_values(
+            by="cnt", ascending=False)
+        coll_df.cnt = coll_df.cnt.apply(lambda cnt: f"{cnt}/{len(df)+1}")
+        coll_df["key"] = coll_key
+        colls.append(coll_df)
+
+    coll_df = pd.concat(colls)
     text = f"""have {len(coll_df)} incomplete:
     {coll_df.to_string()}
     """
@@ -160,7 +170,9 @@ def message():
     chat_id = message["chat"]["id"]
 
     is_caught = False
-    for file_name, coll_name in zip(["psycho", "activities"], ["psycho1", "activities"]):
+    with open("data/collections.json") as f:
+        colls = json.load(f)
+    for file_name, coll_name in colls.values():
         df = get_psycho_transitions(f"data/{file_name}.json")
         _, coll = get_mongo_client(coll_name)
 

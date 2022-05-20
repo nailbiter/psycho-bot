@@ -18,6 +18,7 @@ COPY src/_common/base.py _common
 RUN mkdir data
 COPY src/data/psycho.json data
 COPY src/data/activities.json data
+COPY src/data/collections.json data
 
 RUN mkdir templates
 COPY src/templates/psycho.jinja.md templates

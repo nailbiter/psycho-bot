@@ -23,6 +23,7 @@ import re
 import os
 import time
 import pymongo
+import json
 
 
 def get_mongo_client(collname):
@@ -142,3 +143,13 @@ def to_utc_datetime(date=None, inverse=False):
         date = datetime.now()
     td = timedelta(hours=_get_current_offset())
     return date-td if not inverse else date+td
+
+
+def load_data_json(file_name):
+    """
+    return (fn, data)
+    """
+    full_fn = f"context/src/data/{file_name}.json"
+    with open(full_fn) as f:
+        data = json.load(f)
+    return full_fn, data
