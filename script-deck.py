@@ -90,11 +90,19 @@ def print_psycho(mark_printed, key):
     else:
         pass
 
-    click.echo(coll_df.to_csv(header=None, index=None, sep="\t"))
+    text = coll_df.to_csv(header=None, index=None, sep="\t")
+    _fn = _common.get_random_filename(".csv")
+    with open(_fn, "w") as f:
+        f.write(text)
+    logging.warning(f"output duplicated to {_fn}")
+
+    click.echo(text)
     if mark_printed:
         dt = datetime.now()
         coll_print_marks.insert_many([{"uuid": u, "dt": dt} for u in uuids])
         logging.warning(f"{len(coll_df)} marks done")
+    else:
+        logging.warning(f"no marks added")
 
 
 @script_deck.command()
@@ -177,7 +185,7 @@ def show_incomplete(key, head, dry_run, delete):
         if len(slice_) < (len(states_df)+1)
     ])
     if len(coll_df) == 0:
-        click.echo(f"no \"{key}\"!")
+        click.echo(f"no \"{key}\")key!")
         exit(0)
     coll_df["text"] = coll_df.pop("text").apply(
         lambda d: None if len(d) == 0 else min(d, key=d.get))
@@ -197,6 +205,11 @@ def show_incomplete(key, head, dry_run, delete):
                 coll.delete_one({"uuid": uuid_})
         else:
             click.echo("dry run")
+
+
+@script_deck.command()
+def show_incomplete_spreadsheet():
+    pass
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ import os
 import time
 import pymongo
 import json
+import uuid
 
 
 def get_mongo_client(collname):
@@ -153,3 +154,8 @@ def load_data_json(file_name):
     with open(full_fn) as f:
         data = json.load(f)
     return full_fn, data
+
+
+def get_random_filename(ext=".txt"):
+    assert ext.startswith(".")
+    return f"/tmp/{uuid.uuid4()}{ext}"
