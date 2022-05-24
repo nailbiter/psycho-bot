@@ -28,9 +28,11 @@ import pandas as pd
 import pymongo
 from datetime import datetime, timedelta
 import _common
+import _common.google_drive
 import numpy as np
 from os import path
 import tqdm
+import string
 
 
 @click.group()
@@ -208,8 +210,31 @@ def show_incomplete(key, head, dry_run, delete):
 
 
 @script_deck.command()
-def show_incomplete_spreadsheet():
-    pass
+@click.option("--client-key", type=click.Path(), default="client_secret.json")
+@click.option("--token-key", type=click.Path(), default=".token.json")
+@click.option("--spreadsheet-id", envvar="PSYCHO_TABLE", required=True)
+def show_incomplete_spreadsheet(client_key, token_key, spreadsheet_id):
+    creds = _common.google_drive.get_creds(
+        client_key, token_key, create_if_not_exist=True)
+    df = _common.google_drive.download_df_from_google_sheets(
+        creds, spreadsheet_id, initial_row=1)
+    _, trans = _common.load_data_json("psycho")
+
+    df = pd.DataFrame({(trans[i-1]["text"] if i > 0 else "dt"): col for i,
+                      (cn, col) in enumerate(df.items())})
+    df["i"] = df.index+3
+
+    missing_df = pd.DataFrame([
+        {**r,
+            "empty_f": next(filter(lambda t: pd.isna(t[1][1]), enumerate(r.items())))}
+        for r
+        in df.to_dict(orient="records")
+        if sum(map(pd.isna, r.values())) > 0
+    ])
+    missing_df.empty_f = missing_df.empty_f.apply(
+        lambda t: (string.ascii_uppercase[t[0]], t[1][0]))
+    missing_df = missing_df.set_index("i")
+    click.echo(missing_df)
 
 
 if __name__ == "__main__":
