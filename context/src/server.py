@@ -62,7 +62,7 @@ def activity_reminder():
 
     if is_sleeping:
         _common.base.send_message(
-            chat_id, f"sleeping ==> no message ({df.strftime('%H:%M')})")
+            chat_id, f"sleeping ==> no message ({dt.strftime('%H:%M')})")
     else:
         df = get_psycho_transitions("data/activities.json")
         _, coll = get_mongo_client("activities")
