@@ -168,7 +168,8 @@ def cp(key, dry_run, src, dst):
 @click.option("-h", "--head", type=int)
 @click.option("-d", "--delete", type=(int, int))
 @click.option("--dry-run/--no-dry-run", default=True)
-def show_incomplete(key, head, dry_run, delete):
+@click.option("-f", "--fill", type=(int, int, str, str, str))
+def show_incomplete(key, head, dry_run, delete, fill):
     _, _D = _common.load_data_json("collections")
     file_name, coll_name = _D[key]
     _, coll = _common.get_mongo_client(coll_name)
@@ -205,6 +206,16 @@ def show_incomplete(key, head, dry_run, delete):
             click.echo("no dry run")
             for uuid_ in tqdm.tqdm(to_delete_df.uuid):
                 coll.delete_one({"uuid": uuid_})
+        else:
+            click.echo("dry run")
+    elif fill is not None:
+        to_insert_df = coll_df.iloc[fill[0]:fill[1]+1]
+        if not dry_run:
+            click.echo("no dry run")
+            now_ = datetime.now()
+            for (uuid_, dt), (i, text) in tqdm.tqdm(list(itertools.product(zip(to_insert_df.uuid, to_insert_df.datetime), enumerate(fill[2:])))):
+                coll.insert_one(
+                    {"uuid": uuid_, "datetime": dt+timedelta(minutes=i+10), "text": text})
         else:
             click.echo("dry run")
 
