@@ -168,8 +168,9 @@ def cp(key, dry_run, src, dst):
 @click.option("-h", "--head", type=int)
 @click.option("-d", "--delete", type=(int, int))
 @click.option("--dry-run/--no-dry-run", default=True)
+@click.option("-u", "--upper", default=1, type=float)
 @click.option("-f", "--fill", type=(int, int, str, str, str))
-def show_incomplete(key, head, dry_run, delete, fill):
+def show_incomplete(key, head, dry_run, delete, fill, upper):
     _, _D = _common.load_data_json("collections")
     file_name, coll_name = _D[key]
     _, coll = _common.get_mongo_client(coll_name)
@@ -193,6 +194,7 @@ def show_incomplete(key, head, dry_run, delete, fill):
     coll_df["text"] = coll_df.pop("text").apply(
         lambda d: None if len(d) == 0 else min(d, key=d.get))
     coll_df = coll_df.sort_values(by="datetime", ignore_index=True)
+    coll_df = coll_df[coll_df.phase <= upper]
 
     click.echo(f"{len(coll_df)} pending")
     if head is not None:
