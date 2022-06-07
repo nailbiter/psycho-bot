@@ -188,7 +188,7 @@ def show_incomplete(key, head, dry_run, delete, fill):
         if len(slice_) < (len(states_df)+1)
     ])
     if len(coll_df) == 0:
-        click.echo(f"no \"{key}\")key!")
+        click.echo(f"no \"{key}\" key!")
         exit(0)
     coll_df["text"] = coll_df.pop("text").apply(
         lambda d: None if len(d) == 0 else min(d, key=d.get))
