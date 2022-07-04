@@ -223,9 +223,54 @@ def show_incomplete(key, head, dry_run, delete, fill, upper):
 
 
 @script_deck.command()
-@click.option("--client-key", type=click.Path(), default="client_secret.json")
-@click.option("--token-key", type=click.Path(), default=".token.json")
-@click.option("--spreadsheet-id", envvar="PSYCHO_TABLE", required=True)
+@click.option("-k", "--key", type=click.Choice(list(_common.load_data_json("collections")[1])))
+@click.option("-d", "--delete", type=(int, int))
+@click.option("--dry-run/--no-dry-run", default=True)
+def delete_complete(key, dry_run, delete):
+    _, _D = _common.load_data_json("collections")
+    file_name, coll_name = _D[key]
+    _, coll = _common.get_mongo_client(coll_name)
+    coll_df = pd.DataFrame(coll.find())
+    states_df = pd.read_json(_common.load_data_json(file_name)[0])
+
+    coll_df = pd.DataFrame([
+        {
+            "uuid": uuid_,
+            "datetime": _common.to_utc_datetime(slice_.datetime.min(), inverse=True),
+            "_datetimes": sorted(slice_.datetime),
+            #            "phase": fractions.Fraction(len(slice_)-1, len(states_df)),
+            "text": {text: dt for text, dt in slice_[["text", "datetime"]].values if not pd.isna(text)},
+        }
+        for uuid_, slice_
+        in coll_df.groupby("uuid")
+        if len(slice_) == (len(states_df)+1)
+    ])
+    assert len(coll_df) == coll_df.datetime.nunique(
+    ), {k: coll_df[coll_df.datetime == k] for k, v in coll_df.datetime.value_counts().items() if v > 1}
+    coll_df = coll_df.sort_values(
+        by="datetime", ascending=False, ignore_index=True)
+    click.echo(coll_df)
+
+    if delete is not None:
+        #        click.echo(coll_df.datetime.iloc[delete[0]:delete[1]+1])
+        removes = []
+        for u, dts in coll_df.iloc[delete[0]:delete[1]+1][["uuid", "_datetimes"]].values:
+            for dt in dts[1:]:
+                removes.append((u, dt))
+        click.echo(pd.DataFrame(removes))
+#        dry_run = True
+        if not dry_run:
+            click.echo("no dry_run")
+            for u, dt in tqdm.tqdm(removes):
+                coll.delete_one({"uuid": u, "datetime": dt})
+        else:
+            click.echo("dry_run")
+
+
+@ script_deck.command()
+@ click.option("--client-key", type=click.Path(), default="client_secret.json")
+@ click.option("--token-key", type=click.Path(), default=".token.json")
+@ click.option("--spreadsheet-id", envvar="PSYCHO_TABLE", required=True)
 def show_incomplete_spreadsheet(client_key, token_key, spreadsheet_id):
     creds = _common.google_drive.get_creds(
         client_key, token_key, create_if_not_exist=True)
@@ -234,7 +279,7 @@ def show_incomplete_spreadsheet(client_key, token_key, spreadsheet_id):
     _, trans = _common.load_data_json("psycho")
 
     df = pd.DataFrame({(trans[i-1]["text"] if i > 0 else "dt"): col for i,
-                      (cn, col) in enumerate(df.items())})
+                       (cn, col) in enumerate(df.items())})
     df["i"] = df.index+3
 
     missing_df = pd.DataFrame([
